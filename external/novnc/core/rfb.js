@@ -260,6 +260,37 @@ export default class RFB extends EventTargetMixin {
         // NB: nothing that needs explicit teardown should be done
         // before this point, since this can throw an exception
         try {
+            const originalFlip = Display.prototype.flip;
+            Display.prototype.flip = function (fromQueue) {
+                const now = Date.now();
+                try {
+                    if (Array.isArray(window.gestureQueue)) {
+                        const nextGesture = window.gestureQueue.find(g => !g.flushed);
+                        if (nextGesture) {
+                            nextGesture.flushed = true;
+                            clearTimeout(nextGesture.timeoutId);
+
+                            window.postMessage(JSON.stringify({
+                                gestureId: nextGesture?.id,
+                                type: nextGesture?.type,
+                                latency: `${now - nextGesture?.sentAt}ms`,
+                                sentAt: nextGesture?.sentAt,
+                                flipedAt: now,
+                                value: nextGesture?.value,
+                            }), '*');
+
+                            // Remove from queue
+                            window.gestureQueue = window?.gestureQueue?.filter(g => g?.id !== nextGesture?.id);
+                        }
+                    }
+                } catch (e) {
+                    Log.Error('Latency tracking error: ' + e?.message);
+                }
+
+                // Call original flip with correct argument
+                return originalFlip.call(this, fromQueue);
+            };
+
             this._display = new Display(this._canvas);
         } catch (exc) {
             Log.Error("Display exception: " + exc);
@@ -477,14 +508,20 @@ export default class RFB extends EventTargetMixin {
             // 0 is NoSymbol
             keysym = keysym || 0;
 
-            Log.Info("Sending key (" + (down ? "down" : "up") + "): keysym " + keysym + ", scancode " + scancode);
+            if(down){
+                window.enqueueGesture('keyevent', keysym);
+            }
+            // Log.Info("Sending key (" + (down ? "down" : "up") + "): keysym " + keysym + ", scancode " + scancode);
 
             RFB.messages.QEMUExtendedKeyEvent(this._sock, keysym, down, scancode);
         } else {
             if (!keysym) {
                 return;
             }
-            Log.Info("Sending keysym (" + (down ? "down" : "up") + "): " + keysym);
+            if(down){
+                window.enqueueGesture('keyevent', keysym);
+            }
+            // Log.Info("Sending keysym (" + (down ? "down" : "up") + "): " + keysym + "<<<<<<<");
             RFB.messages.keyEvent(this._sock, keysym, down ? 1 : 0);
         }
     }
@@ -1325,9 +1362,11 @@ export default class RFB extends EventTargetMixin {
             case 'gesturestart':
                 switch (ev.detail.type) {
                     case 'onetap':
+                        window.enqueueGesture('tap', 'single-tap');
                         this._handleTapEvent(ev, 0x1);
                         break;
                     case 'twotap':
+                        window.enqueueGesture('tap', 'double-tap');
                         this._handleTapEvent(ev, 0x4);
                         break;
                     case 'threetap':

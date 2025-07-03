@@ -172,6 +172,7 @@ const UI = {
         UI.setupSettingLabels();
 
         /* Populate the controls if defaults are provided in the URL */
+        UI.initSetting('authToken', '');
         UI.initSetting('host', '');
         UI.initSetting('port', 0);
         UI.initSetting('encrypt', (window.location.protocol === "https:"));
@@ -1033,6 +1034,7 @@ const UI = {
         const host = UI.getSetting('host');
         const port = UI.getSetting('port');
         const path = UI.getSetting('path');
+        const authToken = UI.getSetting('authToken');
 
         if (typeof password === 'undefined') {
             password = UI.getSetting('password');
@@ -1064,6 +1066,9 @@ const UI = {
             // starts with more than one "/", in which case it would be
             // interpreted as a host name instead.
             url = new URL("./" + path, url);
+            if(authToken){
+                url.searchParams.set('token', authToken);
+            }
         } else {
             // Current (May 2024) browsers support relative WebSocket
             // URLs natively, but we need to support older browsers for

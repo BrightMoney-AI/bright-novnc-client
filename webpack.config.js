@@ -24,6 +24,7 @@ module.exports = {
         { from: 'external/novnc/app/styles', to: 'app/styles' },
         { from: 'external/novnc/app/sounds', to: 'app/sounds' },
         { from: 'external/novnc/app/error-handler.js', to: 'app/error-handler.js' },
+        { from: 'external/novnc/package.json', to: 'package.json' },
       ],
     }),
   ],

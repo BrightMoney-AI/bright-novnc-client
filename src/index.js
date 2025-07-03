@@ -1,5 +1,4 @@
 import UI from 'novnc/app/ui.js';
-import * as Log from 'novnc/core/util/logging.js';
 
 function parseQueryFromURL() {
   const queryString = window.location.hash.substring(1) || window.location.search.substring(1);
@@ -14,16 +13,31 @@ function parseQueryFromURL() {
 (async () => {
   const queryParams = parseQueryFromURL();
   const defaults = {
-    host: "127.0.0.1",
-    port: 5901,
-    path: "websockify",
     autoconnect: true,
     reconnect: true,
-    logging: "warn",
     ...queryParams,
   };
   const mandatory = {};
   UI.start({ settings: { defaults, mandatory } });
-//   Log.set_logging(defaults.logging || "warn");
   window.UI = UI;
+  window.gestureQueue = [];
+  window.enqueueGesture = function(type, val) {
+      const now = Date.now();
+      const id = `${type}-${now}-${val}`;
+
+      const gesture = {
+          id,
+          type,
+          sentAt: now,
+          flushed: false,
+          timeoutId: setTimeout(() => {
+          // Remove gesture if no flush happened in 1500ms
+          window.gestureQueue = window.gestureQueue.filter(g => g.id !== id);
+          }, 1500),
+          ...(val ? {
+              value: val,
+          }: {})
+      };
+      window.gestureQueue.push(gesture);
+  }
 })();

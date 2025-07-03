@@ -57,6 +57,27 @@
         let defaults = {};
         let mandatory = {};
 
+        window.gestureQueue = [];
+        window.enqueueGesture = function(type, val) {
+            const now = Date.now();
+            const id = `${type}-${now}-${val}`;
+
+            const gesture = {
+                id,
+                type,
+                sentAt: now,
+                flushed: false,
+                timeoutId: setTimeout(() => {
+                // Remove gesture if no flush happened in 1500ms
+                window.gestureQueue = window.gestureQueue.filter(g => g.id !== id);
+                }, 1500),
+                ...(val ? {
+                    value: val,
+                }: {})
+            };
+            window.gestureQueue.push(gesture);
+        }
+
         // Default settings will be loaded from defaults.json. Mandatory
         // settings will be loaded from mandatory.json, which the user
         // cannot change.
