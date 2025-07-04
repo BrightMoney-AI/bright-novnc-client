@@ -58,9 +58,11 @@
         let mandatory = {};
 
         window.gestureQueue = [];
-        window.enqueueGesture = function(type, val) {
+        window.enqueueGesture = function(type, val = '', actualKey = '') {
             const now = Date.now();
-            const id = `${type}-${now}-${val}`;
+            const isKeyEventGesture = type === 'keyevent';
+            // Log.Info(`Enqueuing gesture: type=${type}, val=${val}, actualKey=${actualKey}`);
+            const id = `${type}-${now}-${isKeyEventGesture ? actualKey || val : val}`;
 
             const gesture = {
                 id,
@@ -71,9 +73,7 @@
                 // Remove gesture if no flush happened in 1500ms
                 window.gestureQueue = window.gestureQueue.filter(g => g.id !== id);
                 }, 1500),
-                ...(val ? {
-                    value: val,
-                }: {})
+                value: isKeyEventGesture ? actualKey || val : val,
             };
             window.gestureQueue.push(gesture);
         }

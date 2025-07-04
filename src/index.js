@@ -21,23 +21,23 @@ function parseQueryFromURL() {
   UI.start({ settings: { defaults, mandatory } });
   window.UI = UI;
   window.gestureQueue = [];
-  window.enqueueGesture = function(type, val) {
-      const now = Date.now();
-      const id = `${type}-${now}-${val}`;
+  window.enqueueGesture = function(type, val = '', actualKey = '') {
+    const now = Date.now();
+    const isKeyEventGesture = type === 'keyevent';
+    // console.log(`Enqueuing gesture: type=${type}, val=${val}, actualKey=${actualKey}`);
+    const id = `${type}-${now}-${isKeyEventGesture ? actualKey || val : val}`;
 
-      const gesture = {
-          id,
-          type,
-          sentAt: now,
-          flushed: false,
-          timeoutId: setTimeout(() => {
-          // Remove gesture if no flush happened in 1500ms
-          window.gestureQueue = window.gestureQueue.filter(g => g.id !== id);
-          }, 1500),
-          ...(val ? {
-              value: val,
-          }: {})
-      };
-      window.gestureQueue.push(gesture);
+    const gesture = {
+        id,
+        type,
+        sentAt: now,
+        flushed: false,
+        timeoutId: setTimeout(() => {
+        // Remove gesture if no flush happened in 1500ms
+        window.gestureQueue = window.gestureQueue.filter(g => g.id !== id);
+        }, 1500),
+        value: isKeyEventGesture ? actualKey || val : val,
+    };
+    window.gestureQueue.push(gesture);
   }
 })();

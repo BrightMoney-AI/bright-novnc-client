@@ -493,7 +493,7 @@ export default class RFB extends EventTargetMixin {
 
     // Send a key press. If 'down' is not specified then send a down key
     // followed by an up key.
-    sendKey(keysym, code, down) {
+    sendKey(keysym, code, down, actualKey = '') {
         if (this._rfbConnectionState !== 'connected' || this._viewOnly) { return; }
 
         if (down === undefined) {
@@ -509,7 +509,7 @@ export default class RFB extends EventTargetMixin {
             keysym = keysym || 0;
 
             if(down){
-                window.enqueueGesture('keyevent', keysym);
+                window.enqueueGesture('keyevent', keysym, actualKey);
             }
             // Log.Info("Sending key (" + (down ? "down" : "up") + "): keysym " + keysym + ", scancode " + scancode);
 
@@ -519,7 +519,7 @@ export default class RFB extends EventTargetMixin {
                 return;
             }
             if(down){
-                window.enqueueGesture('keyevent', keysym);
+                window.enqueueGesture('keyevent', keysym, actualKey);
             }
             // Log.Info("Sending keysym (" + (down ? "down" : "up") + "): " + keysym + "<<<<<<<");
             RFB.messages.keyEvent(this._sock, keysym, down ? 1 : 0);
