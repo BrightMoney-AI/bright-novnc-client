@@ -11,7 +11,7 @@ module.exports = {
   },
   resolve: {
     alias: {
-      novnc: path.resolve(__dirname, 'external/novnc/'),
+      novnc: path.resolve(__dirname, 'novnc/'),
     },
   },
   plugins: [
@@ -20,10 +20,11 @@ module.exports = {
     }),
     new CopyPlugin({
       patterns: [
-        { from: 'external/novnc/app/images', to: 'app/images' },
-        { from: 'external/novnc/app/styles', to: 'app/styles' },
-        { from: 'external/novnc/app/sounds', to: 'app/sounds' },
-        { from: 'external/novnc/app/error-handler.js', to: 'app/error-handler.js' },
+        { from: 'novnc/app/images', to: 'app/images' },
+        { from: 'novnc/app/styles', to: 'app/styles' },
+        { from: 'novnc/app/sounds', to: 'app/sounds' },
+        { from: 'novnc/app/error-handler.js', to: 'app/error-handler.js' },
+        { from: 'novnc/package.json', to: 'package.json' },
       ],
     }),
   ],
@@ -33,7 +34,7 @@ module.exports = {
         test: /\.js$/,
         include: [
           path.resolve(__dirname, 'src'),
-          path.resolve(__dirname, 'external/novnc'),
+          path.resolve(__dirname, 'novnc'),
         ],
         use: 'babel-loader',
       },
