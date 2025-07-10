@@ -21,11 +21,9 @@ function parseQueryFromURL() {
   UI.start({ settings: { defaults, mandatory } });
   window.UI = UI;
   window.gestureQueue = [];
-  window.enqueueGesture = function(type, val = '', actualKey = '') {
+  window.enqueueGesture = function(type, val = '') {
     const now = Date.now();
-    const isKeyEventGesture = type === 'keyevent';
-    // console.log(`Enqueuing gesture: type=${type}, val=${val}, actualKey=${actualKey}`);
-    const id = `${type}-${now}-${isKeyEventGesture ? actualKey || val : val}`;
+    const id = `${type}-${now}-${val}`;
 
     const gesture = {
         id,
@@ -33,10 +31,10 @@ function parseQueryFromURL() {
         sentAt: now,
         flushed: false,
         timeoutId: setTimeout(() => {
-        // Remove gesture if no flush happened in 1500ms
-        window.gestureQueue = window.gestureQueue.filter(g => g.id !== id);
-        }, 1500),
-        value: isKeyEventGesture ? actualKey || val : val,
+        // Remove gesture if no flush happened in 2000ms
+         window.gestureQueue = window.gestureQueue.filter(g => g?.id !== id);
+        }, 2000),
+        value: val,
     };
     window.gestureQueue.push(gesture);
   }

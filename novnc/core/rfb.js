@@ -263,30 +263,24 @@ export default class RFB extends EventTargetMixin {
             const originalFlip = Display.prototype.flip;
             Display.prototype.flip = function (fromQueue) {
                 const now = Date.now();
-                try {
-                    if (Array.isArray(window.gestureQueue)) {
-                        const nextGesture = window.gestureQueue.find(g => !g.flushed);
-                        if (nextGesture) {
-                            nextGesture.flushed = true;
-                            clearTimeout(nextGesture.timeoutId);
+                if (Array.isArray(window?.gestureQueue)) {
+                    const nextGesture = window?.gestureQueue?.find(g => !g.flushed);
+                    if (nextGesture) {
+                        nextGesture.flushed = true;
+                        clearTimeout(nextGesture?.timeoutId);
+                        window?.postMessage(JSON.stringify({
+                            gestureId: nextGesture?.id,
+                            type: nextGesture?.type,
+                            latency: `${now - nextGesture?.sentAt}ms`,
+                            sentAt: nextGesture?.sentAt,
+                            flipedAt: now,
+                            value: nextGesture?.value,
+                        }), '*');
 
-                            window.postMessage(JSON.stringify({
-                                gestureId: nextGesture?.id,
-                                type: nextGesture?.type,
-                                latency: `${now - nextGesture?.sentAt}ms`,
-                                sentAt: nextGesture?.sentAt,
-                                flipedAt: now,
-                                value: nextGesture?.value,
-                            }), '*');
-
-                            // Remove from queue
-                            window.gestureQueue = window?.gestureQueue?.filter(g => g?.id !== nextGesture?.id);
-                        }
+                        // Remove from queue
+                        window.gestureQueue = window?.gestureQueue?.filter(g => g?.id !== nextGesture?.id);
                     }
-                } catch (e) {
-                    Log.Error('Latency tracking error: ' + e?.message);
                 }
-
                 // Call original flip with correct argument
                 return originalFlip.call(this, fromQueue);
             };
@@ -507,21 +501,15 @@ export default class RFB extends EventTargetMixin {
         if (this._qemuExtKeyEventSupported && scancode) {
             // 0 is NoSymbol
             keysym = keysym || 0;
-
-            // if(down){
-                // window.enqueueGesture('keyevent', keysym, actualKey);
-            // }
-            // Log.Info("Sending key (" + (down ? "down" : "up") + "): keysym " + keysym + ", scancode " + scancode);
+            
+            Log.Info("Sending key (" + (down ? "down" : "up") + "): keysym " + keysym + ", scancode " + scancode);
 
             RFB.messages.QEMUExtendedKeyEvent(this._sock, keysym, down, scancode);
         } else {
             if (!keysym) {
                 return;
             }
-            // if(down){
-                // window.enqueueGesture('keyevent', keysym, actualKey);
-            // }
-            // Log.Info("Sending keysym (" + (down ? "down" : "up") + "): " + keysym + "<<<<<<<");
+            Log.Info("Sending keysym (" + (down ? "down" : "up") + "): " + keysym);
             RFB.messages.keyEvent(this._sock, keysym, down ? 1 : 0);
         }
     }

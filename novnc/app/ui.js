@@ -172,7 +172,8 @@ const UI = {
         UI.setupSettingLabels();
 
         /* Populate the controls if defaults are provided in the URL */
-        UI.initSetting('authToken', '');
+        UI.initSetting('token', '');
+        UI.initSetting('password', '');
         UI.initSetting('host', '');
         UI.initSetting('port', 0);
         UI.initSetting('encrypt', (window.location.protocol === "https:"));
@@ -1034,7 +1035,7 @@ const UI = {
         const host = UI.getSetting('host');
         const port = UI.getSetting('port');
         const path = UI.getSetting('path');
-        const authToken = UI.getSetting('authToken');
+        const authToken = UI.getSetting('token');
 
         if (typeof password === 'undefined') {
             password = UI.getSetting('password');
@@ -1253,30 +1254,34 @@ const UI = {
  * ------v------*/
 
     credentials(e) {
-        // FIXME: handle more types
+        // Getting password from query params
+        const password = UI.getSetting('password');
+        UI.rfb.sendCredentials({ password });
 
-        document.getElementById("noVNC_username_block").classList.remove("noVNC_hidden");
-        document.getElementById("noVNC_password_block").classList.remove("noVNC_hidden");
+        // Hide the credentials dialog and send the password directly
 
-        let inputFocus = "none";
-        if (e.detail.types.indexOf("username") === -1) {
-            document.getElementById("noVNC_username_block").classList.add("noVNC_hidden");
-        } else {
-            inputFocus = inputFocus === "none" ? "noVNC_username_input" : inputFocus;
-        }
-        if (e.detail.types.indexOf("password") === -1) {
-            document.getElementById("noVNC_password_block").classList.add("noVNC_hidden");
-        } else {
-            inputFocus = inputFocus === "none" ? "noVNC_password_input" : inputFocus;
-        }
-        document.getElementById('noVNC_credentials_dlg')
-            .classList.add('noVNC_open');
+        // document.getElementById("noVNC_username_block").classList.remove("noVNC_hidden");
+        // document.getElementById("noVNC_password_block").classList.remove("noVNC_hidden");
 
-        setTimeout(() => document
-            .getElementById(inputFocus).focus(), 100);
+        // let inputFocus = "none";
+        // if (e.detail.types.indexOf("username") === -1) {
+        //     document.getElementById("noVNC_username_block").classList.add("noVNC_hidden");
+        // } else {
+        //     inputFocus = inputFocus === "none" ? "noVNC_username_input" : inputFocus;
+        // }
+        // if (e.detail.types.indexOf("password") === -1) {
+        //     document.getElementById("noVNC_password_block").classList.add("noVNC_hidden");
+        // } else {
+        //     inputFocus = inputFocus === "none" ? "noVNC_password_input" : inputFocus;
+        // }
+        // document.getElementById('noVNC_credentials_dlg')
+        //     .classList.add('noVNC_open');
 
-        Log.Warn("Server asked for credentials");
-        UI.showStatus(_("Credentials are required"), "warning");
+        // setTimeout(() => document
+        //     .getElementById(inputFocus).focus(), 100);
+
+        // Log.Warn("Server asked for credentials");
+        // UI.showStatus(_("Credentials are required"), "warning");
     },
 
     setCredentials(e) {
