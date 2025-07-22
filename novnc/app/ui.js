@@ -172,13 +172,15 @@ const UI = {
         UI.setupSettingLabels();
 
         /* Populate the controls if defaults are provided in the URL */
-        UI.initSetting('token', '');
+        UI.initSetting('access_token', '');
+        UI.initSetting('routing_token', '');
+        UI.initSetting('disablePinch', false);
         UI.initSetting('password', '');
         UI.initSetting('host', '');
         UI.initSetting('port', 0);
         UI.initSetting('encrypt', (window.location.protocol === "https:"));
         UI.initSetting('password');
-        UI.initSetting('autoconnect', false);
+        UI.initSetting('autoconnect', true);
         UI.initSetting('view_clip', false);
         UI.initSetting('resize', 'off');
         UI.initSetting('quality', 6);
@@ -189,7 +191,7 @@ const UI = {
         UI.initSetting('show_dot', false);
         UI.initSetting('path', 'websockify');
         UI.initSetting('repeaterID', '');
-        UI.initSetting('reconnect', false);
+        UI.initSetting('reconnect', true);
         UI.initSetting('reconnect_delay', 5000);
     },
     // Adds a link to the label elements on the corresponding input elements
@@ -1035,7 +1037,9 @@ const UI = {
         const host = UI.getSetting('host');
         const port = UI.getSetting('port');
         const path = UI.getSetting('path');
-        const authToken = UI.getSetting('token');
+        const routing_token = UI.getSetting('routing_token');
+        const access_token = UI.getSetting('access_token');
+        const disablePinch = UI.getSetting('disablePinch');
 
         if (typeof password === 'undefined') {
             password = UI.getSetting('password');
@@ -1067,8 +1071,9 @@ const UI = {
             // starts with more than one "/", in which case it would be
             // interpreted as a host name instead.
             url = new URL("./" + path, url);
-            if(authToken){
-                url.searchParams.set('token', authToken);
+            if(access_token && routing_token){
+                url.searchParams.set('routing_token', routing_token);
+                url.searchParams.set('access_token', access_token);
             }
         } else {
             // Current (May 2024) browsers support relative WebSocket
@@ -1083,7 +1088,9 @@ const UI = {
                              url.href,
                              { shared: UI.getSetting('shared'),
                                repeaterID: UI.getSetting('repeaterID'),
-                               credentials: { password: password } });
+                               credentials: { password: password }, 
+                               disablePinch: disablePinch,
+                            });
         } catch (exc) {
             Log.Error("Failed to connect to server: " + exc);
             UI.updateVisualState('disconnected');

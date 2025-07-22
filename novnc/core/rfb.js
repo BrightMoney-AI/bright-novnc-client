@@ -120,6 +120,9 @@ export default class RFB extends EventTargetMixin {
         this._repeaterID = options.repeaterID || '';
         this._wsProtocols = options.wsProtocols || [];
 
+        // Gesture overrides
+        this._disablePinch = options?.disablePinch || false;
+
         // Internal state
         this._rfbConnectionState = '';
         this._rfbInitState = '';
@@ -1388,9 +1391,12 @@ export default class RFB extends EventTargetMixin {
                         this._fakeMouseMove(ev, pos.x, pos.y);
                         break;
                     case 'pinch':
-                        this._gestureLastMagnitudeX = Math.hypot(ev.detail.magnitudeX,
-                                                                 ev.detail.magnitudeY);
-                        this._fakeMouseMove(ev, pos.x, pos.y);
+                        // Comparing as string as query params comes as string  
+                        if(!(this._disablePinch === "true")){
+                            this._gestureLastMagnitudeX = Math.hypot(ev.detail.magnitudeX,
+                                                                        ev.detail.magnitudeY);
+                            this._fakeMouseMove(ev, pos.x, pos.y);
+                        }
                         break;
                 }
                 break;
@@ -1449,22 +1455,24 @@ export default class RFB extends EventTargetMixin {
                         // Always scroll in the same position.
                         // We don't know if the mouse was moved so we need to move it
                         // every update.
-                        this._fakeMouseMove(ev, pos.x, pos.y);
-                        magnitude = Math.hypot(ev.detail.magnitudeX, ev.detail.magnitudeY);
-                        if (Math.abs(magnitude - this._gestureLastMagnitudeX) > GESTURE_ZOOMSENS) {
-                            this._handleKeyEvent(KeyTable.XK_Control_L, "ControlLeft", true);
-                            while ((magnitude - this._gestureLastMagnitudeX) > GESTURE_ZOOMSENS) {
-                                this._handleMouseButton(pos.x, pos.y, 0x8);
-                                this._handleMouseButton(pos.x, pos.y, 0x0);
-                                this._gestureLastMagnitudeX += GESTURE_ZOOMSENS;
+                        if(!(this._disablePinch === "true")){
+                            this._fakeMouseMove(ev, pos.x, pos.y);
+                            magnitude = Math.hypot(ev.detail.magnitudeX, ev.detail.magnitudeY);
+                            if (Math.abs(magnitude - this._gestureLastMagnitudeX) > GESTURE_ZOOMSENS) {
+                                this._handleKeyEvent(KeyTable.XK_Control_L, "ControlLeft", true);
+                                while ((magnitude - this._gestureLastMagnitudeX) > GESTURE_ZOOMSENS) {
+                                    this._handleMouseButton(pos.x, pos.y, 0x8);
+                                    this._handleMouseButton(pos.x, pos.y, 0x0);
+                                    this._gestureLastMagnitudeX += GESTURE_ZOOMSENS;
+                                }
+                                while ((magnitude -  this._gestureLastMagnitudeX) < -GESTURE_ZOOMSENS) {
+                                    this._handleMouseButton(pos.x, pos.y, 0x10);
+                                    this._handleMouseButton(pos.x, pos.y, 0x0);
+                                    this._gestureLastMagnitudeX -= GESTURE_ZOOMSENS;
+                                }
                             }
-                            while ((magnitude -  this._gestureLastMagnitudeX) < -GESTURE_ZOOMSENS) {
-                                this._handleMouseButton(pos.x, pos.y, 0x10);
-                                this._handleMouseButton(pos.x, pos.y, 0x0);
-                                this._gestureLastMagnitudeX -= GESTURE_ZOOMSENS;
-                            }
+                            this._handleKeyEvent(KeyTable.XK_Control_L, "ControlLeft", false);
                         }
-                        this._handleKeyEvent(KeyTable.XK_Control_L, "ControlLeft", false);
                         break;
                 }
                 break;
