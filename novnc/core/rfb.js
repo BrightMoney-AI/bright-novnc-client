@@ -271,14 +271,26 @@ export default class RFB extends EventTargetMixin {
                     if (nextGesture) {
                         nextGesture.flushed = true;
                         clearTimeout(nextGesture?.timeoutId);
-                        window?.postMessage(JSON.stringify({
-                            gestureId: nextGesture?.id,
-                            type: nextGesture?.type,
-                            latency: `${now - nextGesture?.sentAt}ms`,
-                            sentAt: nextGesture?.sentAt,
-                            flipedAt: now,
-                            value: nextGesture?.value,
-                        }), '*');
+                        if(window?.ReactNativeWebView?.postMessage){
+                            // React Native WebView postMessage
+                            window.ReactNativeWebView.postMessage(JSON.stringify({
+                                gestureId: nextGesture?.id,
+                                type: nextGesture?.type,
+                                latency: `${now - nextGesture?.sentAt}ms`,
+                                sentAt: nextGesture?.sentAt,
+                                flipedAt: now,
+                                value: nextGesture?.value,
+                            }));
+                        }else {
+                            window?.postMessage(JSON.stringify({
+                                gestureId: nextGesture?.id,
+                                type: nextGesture?.type,
+                                latency: `${now - nextGesture?.sentAt}ms`,
+                                sentAt: nextGesture?.sentAt,
+                                flipedAt: now,
+                                value: nextGesture?.value,
+                            }), '*');
+                        }
 
                         // Remove from queue
                         window.gestureQueue = window?.gestureQueue?.filter(g => g?.id !== nextGesture?.id);
